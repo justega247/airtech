@@ -10,6 +10,8 @@ django = "*"
 djangorestframework = "*"
 python-decouple = "*"
 psycopg2 = "*"
+pytest = "*"
+pytest-django = "*"
 
 [requires]
 python_version = "3.7"
