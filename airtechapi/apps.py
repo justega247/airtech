@@ -1,5 +1,5 @@
 from django.apps import AppConfig
 
 
-class AirtectapiConfig(AppConfig):
-    name = 'airtectapi'
+class AirtechapiConfig(AppConfig):
+    name = 'airtechapi'
