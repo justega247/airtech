@@ -2,5 +2,8 @@
 .env
 __pycache__/
 .pyc
-
+.pytest_cache/
 .vscode/
+.coverage*
+htmlcov/
+notes.txt
