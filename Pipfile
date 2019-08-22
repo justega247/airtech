@@ -12,6 +12,9 @@ python-decouple = "*"
 psycopg2 = "*"
 pytest = "*"
 pytest-django = "*"
+djangorestframework-jwt = "*"
+pytest-cov = "*"
+coverage = "*"
 
 [requires]
 python_version = "3.7"

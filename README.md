@@ -1,6 +1,1 @@
-.idea/*
-.env
-__pycache__/
-.pyc
-
-.vscode/
+[![CircleCI](https://circleci.com/gh/justega247/airtech.svg?style=svg)](https://circleci.com/gh/justega247/airtech)
