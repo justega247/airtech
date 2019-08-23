@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from .models import Flight
 
 User = get_user_model()
 
@@ -27,3 +28,8 @@ class UserDataSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
+
+class FLightSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = Flight
+        fields = '__all__'
