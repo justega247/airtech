@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from .utils.validations import alphaonly, alphanumeric
 
 User = get_user_model()
 
@@ -30,8 +31,8 @@ class Flight(models.Model):
         (REDIRECTED, 'Redirected'),
         (UNKNOWN, 'Unknown')
     )
-    origin = models.CharField(max_length=100)
-    destination = models.CharField(max_length=100)
+    origin = models.CharField(max_length=100, validators=[alphaonly])
+    destination = models.CharField(max_length=100, validators=[alphaonly])
     departure = models.DateField()
     arrival = models.DateField()
     type_of_flight = models.CharField(
@@ -44,8 +45,8 @@ class Flight(models.Model):
         choices=FLIGHT_STATUS,
         default=SCHEDULED
     )
-    flight_number = models.CharField(max_length=7)
-    airline = models.CharField(max_length=50)
+    flight_number = models.CharField(max_length=7, validators=[alphanumeric])
+    airline = models.CharField(max_length=50, validators=[alphaonly])
     price = models.PositiveIntegerField()
     passengers = models.ManyToManyField(
         User,
