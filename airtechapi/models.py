@@ -46,7 +46,11 @@ class Flight(models.Model):
     )
     flight_number = models.CharField(max_length=7)
     airline = models.CharField(max_length=50)
-    passengers = models.ManyToManyField(User)
+    price = models.PositiveIntegerField()
+    passengers = models.ManyToManyField(
+        User,
+        through='Booking'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
@@ -55,3 +59,11 @@ class Flight(models.Model):
 
     def __str__(self):
         return self.flight_number
+
+
+class Booking(models.Model):
+    flight = models.ForeignKey(Flight, on_delete=models.CASCADE)
+    passenger = models.ForeignKey(User, on_delete=models.CASCADE)
+    number_of_tickets = models.PositiveSmallIntegerField(default=1)
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
