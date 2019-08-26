@@ -4,8 +4,10 @@ from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_jwt.settings import api_settings
-from .serializers import UserDataSerializer
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from .serializers import UserDataSerializer, FLightSerializer
 from .permissions import AnonymousPermissionOnly
+from .models import Flight
 
 
 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
@@ -46,3 +48,10 @@ class LoginView(APIView):
         return Response({
             "error": "Invalid Credentials"
         }, status=status.HTTP_400_BAD_REQUEST)
+
+
+# Flight Related Views
+class FlightListView(generics.ListCreateAPIView):
+    permission_classes = (IsAuthenticated, IsAdminUser)
+    serializer_class = FLightSerializer
+    queryset = Flight.objects.all()
