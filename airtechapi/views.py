@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_jwt.settings import api_settings
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
-from .serializers import UserDataSerializer, FLightSerializer
+from .serializers import UserDataSerializer, FLightSerializer, FlightDetailSerializer
 from .permissions import AnonymousPermissionOnly
 from .models import Flight
 
@@ -54,4 +54,10 @@ class LoginView(APIView):
 class FlightListView(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticated, IsAdminUser)
     serializer_class = FLightSerializer
+    queryset = Flight.objects.all()
+
+
+class FlightDetailView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = (IsAuthenticated, IsAdminUser)
+    serializer_class = FlightDetailSerializer
     queryset = Flight.objects.all()

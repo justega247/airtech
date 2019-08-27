@@ -1,7 +1,7 @@
 import datetime
 from django.core.validators import RegexValidator
 
-alphaonly = RegexValidator(r'^[a-zA-Z]*$', 'Only alphabets are allowed.')
+alphaonly = RegexValidator(r'^[a-zA-Z ]*$', 'Only alphabets are allowed.')
 alphanumeric = RegexValidator(r'^[0-9a-zA-Z ]*$', 'Only alphanumeric characters are allowed.')
 
 
