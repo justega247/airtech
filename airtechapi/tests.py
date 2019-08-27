@@ -167,8 +167,8 @@ class FlightTest(BaseViewTest):
         data = {
             "origin": "Lagos",
             "destination": "Enugu",
-            "departure": "2019-08-26",
-            "arrival": "2019-08-27",
+            "departure": datetime.datetime.today().strftime('%Y-%m-%d'),
+            "arrival": (datetime.datetime.today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'),
             "flight_number": "BK 6089",
             "airline": "Emirates",
             "price": 15000
@@ -235,3 +235,120 @@ class FlightTest(BaseViewTest):
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.data['invalid_dates'][0] == "The arrival date cannot be less than the departure date"
+
+    def test_get_flight_detail_with_super_user_success(self):
+        flight01 = Flight.objects.create(
+            origin="Lagos",
+            destination="Enugu",
+            departure="2019-08-26",
+            arrival="2019-08-27",
+            flight_number="BK 6089",
+            airline="Emirates",
+            price=15000
+        )
+        flight01.save()
+        self.user_token(
+            data={
+                "username": "maddy",
+                "password": "thepassword"
+            })
+        url = reverse(
+            "flight-detail",
+            kwargs={
+                "pk": flight01.id
+            }
+        )
+        response = self.client.get(
+            url,
+            content_type="application/json"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['origin'] == "Lagos"
+        assert response.data['destination'] == "Enugu"
+
+    def test_update_flight_detail_with_super_user_success(self):
+        flight01 = Flight.objects.create(
+            origin="Lagos",
+            destination="Enugu",
+            departure="2019-08-26",
+            arrival="2019-08-27",
+            flight_number="BK 6089",
+            airline="Emirates",
+            price=15000
+        )
+        flight01.save()
+        self.user_token(
+            data={
+                "username": "maddy",
+                "password": "thepassword"
+            })
+        url = reverse(
+            "flight-detail",
+            kwargs={
+                "pk": flight01.id
+            }
+        )
+        response = self.client.get(
+            url,
+            content_type="application/json"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['origin'] == "Lagos"
+        assert response.data['destination'] == "Enugu"
+        data = {
+            "origin": "Lagos",
+            "destination": "Abuja",
+            "departure": datetime.datetime.today().strftime('%Y-%m-%d'),
+            "arrival": (datetime.datetime.today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'),
+            "flight_number": "BK 6089",
+            "airline": "Emirates",
+            "price": 15000,
+            "type_of_flight": "RT",
+            "flight_status": "C"
+        }
+        response = self.client.put(
+            url,
+            data=json.dumps(data),
+            content_type="application/json"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['destination'] == "Abuja"
+        response = self.client.get(
+            url,
+            content_type="application/json"
+        )
+        assert response.data['destination'] == "Abuja"
+
+    def test_delete_flight_detail_with_super_user_success(self):
+        flight01 = Flight.objects.create(
+            origin="Lagos",
+            destination="Enugu",
+            departure="2019-08-26",
+            arrival="2019-08-27",
+            flight_number="BK 6089",
+            airline="Emirates",
+            price=15000
+        )
+        flight01.save()
+        self.user_token(
+            data={
+                "username": "maddy",
+                "password": "thepassword"
+            })
+        url = reverse(
+            "flight-detail",
+            kwargs={
+                "pk": flight01.id
+            }
+        )
+        response = self.client.delete(
+            url,
+            content_type="application/json"
+        )
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        response = self.client.get(
+            url,
+            content_type="application/json"
+        )
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+

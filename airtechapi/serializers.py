@@ -34,7 +34,21 @@ class UserDataSerializer(serializers.ModelSerializer):
 class FLightSerializer(serializers.ModelSerializer):
     class Meta:
         model = Flight
-        fields = '__all__'
+        fields = (
+            'id',
+            'origin',
+            'destination',
+            'arrival',
+            'departure',
+            'type_of_flight',
+            'flight_status',
+            'flight_number',
+            'airline',
+            'price',
+            'created_at',
+            'modified_at',
+            'passengers'
+        )
 
     def validate_departure(self, value):
         if validate_date(value):
@@ -58,6 +72,30 @@ class FLightSerializer(serializers.ModelSerializer):
                 'invalid_dates': _('The arrival date cannot be less than the departure date')
             })
         return data
+
+
+class FlightDetailSerializer(FLightSerializer):
+    type_of_flight = serializers.ChoiceField(
+            choices=Flight.FLIGHT_TYPES
+        )
+    type_of_flight_detail = serializers.CharField(
+        source='get_type_of_flight_display',
+        read_only=True
+    )
+
+    flight_status = serializers.ChoiceField(
+        choices=Flight.FLIGHT_STATUS
+    )
+    flight_status_detail = serializers.CharField(
+        source='get_flight_status_display',
+        read_only=True
+    )
+
+    class Meta(FLightSerializer.Meta):
+        fields = FLightSerializer.Meta.fields + (
+            'type_of_flight_detail',
+            'flight_status_detail'
+        )
 
 
 class BookingSerializer(serializers.ModelSerializer):
