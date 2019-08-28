@@ -11,6 +11,7 @@ class UserDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
+            'id',
             'username',
             'email',
             'password'
@@ -31,6 +32,15 @@ class UserDataSerializer(serializers.ModelSerializer):
         return user
 
 
+class BookingSerializer(serializers.ModelSerializer):
+    flight = serializers.SlugRelatedField(queryset=Flight.objects.all(), slug_field='flight_number')
+    passenger = UserDataSerializer(read_only=True)
+
+    class Meta:
+        model = Booking
+        fields = '__all__'
+
+
 class FLightSerializer(serializers.ModelSerializer):
     class Meta:
         model = Flight
@@ -45,9 +55,6 @@ class FLightSerializer(serializers.ModelSerializer):
             'flight_number',
             'airline',
             'price',
-            'created_at',
-            'modified_at',
-            'passengers'
         )
 
     def validate_departure(self, value):
@@ -75,6 +82,7 @@ class FLightSerializer(serializers.ModelSerializer):
 
 
 class FlightDetailSerializer(FLightSerializer):
+    bookings = BookingSerializer(many=True, read_only=True)
     type_of_flight = serializers.ChoiceField(
             choices=Flight.FLIGHT_TYPES
         )
@@ -94,14 +102,8 @@ class FlightDetailSerializer(FLightSerializer):
     class Meta(FLightSerializer.Meta):
         fields = FLightSerializer.Meta.fields + (
             'type_of_flight_detail',
-            'flight_status_detail'
+            'flight_status_detail',
+            'created_at',
+            'modified_at',
+            'bookings'
         )
-
-
-class BookingSerializer(serializers.ModelSerializer):
-    flight = serializers.SlugRelatedField(queryset=Flight.objects.all(), slug_field='flight_number')
-    passenger = serializers.SlugRelatedField(queryset=User.objects.all(), slug_field='username')
-
-    class Meta:
-        model = Booking
-        fields = '__all__'

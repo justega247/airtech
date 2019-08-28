@@ -3,7 +3,8 @@ from .views import (
     RegisterUsersView,
     LoginView,
     FlightListView,
-    FlightDetailView
+    FlightDetailView,
+    BookFlightView
 )
 
 urlpatterns = [
@@ -11,4 +12,5 @@ urlpatterns = [
     path('auth/login/', LoginView.as_view(), name="auth-login"),
     path('flight/', FlightListView.as_view(), name="flight-list"),
     path('flight/<int:pk>', FlightDetailView.as_view(), name="flight-detail"),
+    path('booking/', BookFlightView.as_view(), name="booking-list")
 ]
