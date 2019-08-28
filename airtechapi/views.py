@@ -4,11 +4,11 @@ from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_jwt.settings import api_settings
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from django.db import IntegrityError
 from rest_framework.exceptions import ValidationError
 from .serializers import UserDataSerializer, FLightSerializer, FlightDetailSerializer, BookingSerializer
-from .permissions import AnonymousPermissionOnly, IsAdminOrReadOnly
+from .permissions import AnonymousPermissionOnly, IsAdminOrReadOnly, IsCurrentUserOwnerOrReadOnly
 from .models import Flight, Booking
 
 
@@ -73,6 +73,20 @@ class BookFlightView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         try:
             serializer.save(passenger=self.request.user)
+        except IntegrityError:
+            raise ValidationError({
+                'message': 'The flight and the passenger fields should be unique together'
+            })
+
+
+class BookFlightDetailView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = (IsAuthenticated, IsCurrentUserOwnerOrReadOnly)
+    serializer_class = BookingSerializer
+    queryset = Booking.objects.all()
+
+    def perform_update(self, serializer):
+        try:
+            serializer.save()
         except IntegrityError:
             raise ValidationError({
                 'message': 'The flight and the passenger fields should be unique together'
