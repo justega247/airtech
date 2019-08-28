@@ -363,3 +363,70 @@ class BookingTest(BaseViewTest):
             content_type="application/json"
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_get_update_booking_with_details_success(self):
+        flight01 = self.create_flight()
+        flight01.save()
+        self.user_token(
+            data={
+                "username": "maddy",
+                "password": "thepassword"
+            })
+        url = reverse(
+            "booking-list",
+        )
+        data = {
+            "flight": "BK 6089"
+        }
+        response = self.client.post(
+            url,
+            data=json.dumps(data),
+            content_type="application/json"
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data['number_of_tickets'] == 1
+        url = reverse(
+            "booking-detail",
+            kwargs={
+                "pk": response.data['id']
+            }
+        )
+        response = self.client.get(
+            url,
+            content_type="application/json"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['number_of_tickets'] == 1
+        url = reverse(
+            "booking-detail",
+            kwargs={
+                "pk": response.data['id']
+            }
+        )
+        data = {
+            "flight": "BK 6089",
+            "number_of_tickets": 2
+        }
+        response = self.client.put(
+            url,
+            data=json.dumps(data),
+            content_type="application/json"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['number_of_tickets'] == 2
+        self.client.credentials()
+        self.user_token(
+            data={
+                "username": "paddy",
+                "password": "fakepassword"
+            })
+        data = {
+            "flight": "BK 6089",
+            "number_of_tickets": 2
+        }
+        response = self.client.put(
+            url,
+            data=json.dumps(data),
+            content_type="application/json"
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
