@@ -33,6 +33,17 @@ class BaseViewTest(APITestCase):
         token = response.data.get("token", '')
         self.client.credentials(HTTP_AUTHORIZATION='JWT ' + token)
 
+    def create_flight(self):
+        return Flight.objects.create(
+            origin="Lagos",
+            destination="Enugu",
+            departure="2019-08-26",
+            arrival="2019-08-27",
+            flight_number="BK 6089",
+            airline="Emirates",
+            price=15000
+        )
+
 
 class AuthUserAPITest(BaseViewTest):
     """
@@ -109,20 +120,12 @@ class FlightTest(BaseViewTest):
     Test for the flight/ endpoint
     """
     def test_get_flight_list_with_super_user_success(self):
-        flight01 = Flight.objects.create(
-            origin="Lagos",
-            destination="Enugu",
-            departure="2019-08-26",
-            arrival="2019-08-27",
-            flight_number="BK 6089",
-            airline="Emirates",
-            price=15000
-        )
+        flight01 = self.create_flight()
         flight01.save()
         self.user_token(
             data={
-                "username": "maddy",
-                "password": "thepassword"
+                "username": "paddy",
+                "password": "fakepassword"
             })
         url = reverse(
             "flight-list"
@@ -237,15 +240,7 @@ class FlightTest(BaseViewTest):
         assert response.data['invalid_dates'][0] == "The arrival date cannot be less than the departure date"
 
     def test_get_flight_detail_with_super_user_success(self):
-        flight01 = Flight.objects.create(
-            origin="Lagos",
-            destination="Enugu",
-            departure="2019-08-26",
-            arrival="2019-08-27",
-            flight_number="BK 6089",
-            airline="Emirates",
-            price=15000
-        )
+        flight01 = self.create_flight()
         flight01.save()
         self.user_token(
             data={
@@ -267,15 +262,7 @@ class FlightTest(BaseViewTest):
         assert response.data['destination'] == "Enugu"
 
     def test_update_flight_detail_with_super_user_success(self):
-        flight01 = Flight.objects.create(
-            origin="Lagos",
-            destination="Enugu",
-            departure="2019-08-26",
-            arrival="2019-08-27",
-            flight_number="BK 6089",
-            airline="Emirates",
-            price=15000
-        )
+        flight01 = self.create_flight()
         flight01.save()
         self.user_token(
             data={
@@ -320,15 +307,7 @@ class FlightTest(BaseViewTest):
         assert response.data['destination'] == "Abuja"
 
     def test_delete_flight_detail_with_super_user_success(self):
-        flight01 = Flight.objects.create(
-            origin="Lagos",
-            destination="Enugu",
-            departure="2019-08-26",
-            arrival="2019-08-27",
-            flight_number="BK 6089",
-            airline="Emirates",
-            price=15000
-        )
+        flight01 = self.create_flight()
         flight01.save()
         self.user_token(
             data={
@@ -352,3 +331,35 @@ class FlightTest(BaseViewTest):
         )
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
+
+class BookingTest(BaseViewTest):
+    """
+    Test the booking/endpoint
+    """
+    def test_create_booking_with_valid_details_success(self):
+        flight01 = self.create_flight()
+        flight01.save()
+        self.user_token(
+            data={
+                "username": "maddy",
+                "password": "thepassword"
+            })
+        url = reverse(
+            "booking-list"
+        )
+        data = {
+            "flight": "BK 6089"
+        }
+        response = self.client.post(
+            url,
+            data=json.dumps(data),
+            content_type="application/json"
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data['number_of_tickets'] == 1
+        response = self.client.post(
+            url,
+            data=json.dumps(data),
+            content_type="application/json"
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST

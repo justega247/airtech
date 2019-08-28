@@ -5,9 +5,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_jwt.settings import api_settings
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
-from .serializers import UserDataSerializer, FLightSerializer, FlightDetailSerializer
-from .permissions import AnonymousPermissionOnly
-from .models import Flight
+from django.db import IntegrityError
+from rest_framework.exceptions import ValidationError
+from .serializers import UserDataSerializer, FLightSerializer, FlightDetailSerializer, BookingSerializer
+from .permissions import AnonymousPermissionOnly, IsAdminOrReadOnly
+from .models import Flight, Booking
 
 
 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
@@ -52,12 +54,26 @@ class LoginView(APIView):
 
 # Flight Related Views
 class FlightListView(generics.ListCreateAPIView):
-    permission_classes = (IsAuthenticated, IsAdminUser)
+    permission_classes = (IsAuthenticated, IsAdminOrReadOnly)
     serializer_class = FLightSerializer
     queryset = Flight.objects.all()
 
 
 class FlightDetailView(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = (IsAuthenticated, IsAdminUser)
+    permission_classes = (IsAuthenticated, IsAdminOrReadOnly)
     serializer_class = FlightDetailSerializer
     queryset = Flight.objects.all()
+
+
+class BookFlightView(generics.ListCreateAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = BookingSerializer
+    queryset = Booking.objects.all()
+
+    def perform_create(self, serializer):
+        try:
+            serializer.save(passenger=self.request.user)
+        except IntegrityError:
+            raise ValidationError({
+                'message': 'The flight and the passenger fields should be unique together'
+            })

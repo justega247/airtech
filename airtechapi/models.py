@@ -45,13 +45,9 @@ class Flight(models.Model):
         choices=FLIGHT_STATUS,
         default=SCHEDULED
     )
-    flight_number = models.CharField(max_length=7, validators=[alphanumeric])
+    flight_number = models.CharField(max_length=7, validators=[alphanumeric], unique=True)
     airline = models.CharField(max_length=50, validators=[alphaonly])
     price = models.PositiveIntegerField()
-    passengers = models.ManyToManyField(
-        User,
-        through='Booking'
-    )
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
@@ -63,8 +59,11 @@ class Flight(models.Model):
 
 
 class Booking(models.Model):
-    flight = models.ForeignKey(Flight, on_delete=models.CASCADE)
-    passenger = models.ForeignKey(User, on_delete=models.CASCADE)
+    flight = models.ForeignKey(Flight, related_name='bookings', on_delete=models.CASCADE)
+    passenger = models.ForeignKey(User, related_name='bookings', on_delete=models.CASCADE)
     number_of_tickets = models.PositiveSmallIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('flight', 'passenger')
