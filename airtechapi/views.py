@@ -1,3 +1,4 @@
+import cloudinary.uploader
 from django.contrib.auth import get_user_model
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny
@@ -5,11 +6,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_jwt.settings import api_settings
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser, JSONParser
 from django.db import IntegrityError
+from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import ValidationError
-from .serializers import UserDataSerializer, FLightSerializer, FlightDetailSerializer, BookingSerializer
+from .serializers import (
+    UserDataSerializer, FLightSerializer, FlightDetailSerializer, BookingSerializer, ProfileSerializer)
 from .permissions import AnonymousPermissionOnly, IsAdminOrReadOnly, IsCurrentUserOwnerOrReadOnly
-from .models import Flight, Booking
+from .models import Flight, Booking, Profile
 
 
 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
@@ -91,3 +95,57 @@ class BookFlightDetailView(generics.RetrieveUpdateDestroyAPIView):
             raise ValidationError({
                 'message': 'The flight and the passenger fields should be unique together'
             })
+
+
+class UploadPassportView(APIView):
+    permission_classes = (IsAuthenticated, IsCurrentUserOwnerOrReadOnly)
+    parser_classes = (
+        MultiPartParser,
+        JSONParser
+    )
+
+    def post(self, request):
+        passport = request.data.get('passport')
+
+        upload_passport = cloudinary.uploader.upload(
+            passport,
+            eager=[
+                {"width": 1350, "height": 1200}
+            ]
+        )
+        data = {
+            "user": self.request.user.pk,
+            "passport_url": upload_passport['secure_url'],
+            "cloudinary_public_id": upload_passport['public_id']
+        }
+        serializer = ProfileSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({
+            "data": serializer.data
+        }, status=status.HTTP_201_CREATED)
+
+    def put(self, request, *args, **kwargs):
+        passport_id = request.data.get('id')
+        passport_to_update = get_object_or_404(Profile, id=passport_id)
+
+        passport = request.data.get('passport')
+
+        upload_passport = cloudinary.uploader.upload(
+            passport,
+            public_id=passport_to_update.cloudinary_public_id,
+            eager=[
+                {"width": 1350, "height": 1200}
+            ]
+        )
+        data = {
+            "user": self.request.user.pk,
+            "passport_url": upload_passport['secure_url'],
+            "cloudinary_public_id": upload_passport['public_id']
+        }
+        serializer = ProfileSerializer(passport_to_update, data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({
+            "data": serializer.data
+        }, status=status.HTTP_200_OK)

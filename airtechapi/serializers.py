@@ -1,7 +1,7 @@
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Flight, Booking
+from .models import Flight, Booking, Profile
 from .utils.validations import validate_date, validate_arrival_departure
 
 User = get_user_model()
@@ -107,3 +107,9 @@ class FlightDetailSerializer(FLightSerializer):
             'modified_at',
             'bookings'
         )
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = '__all__'

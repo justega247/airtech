@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 import datetime
+import cloudinary
 from decouple import config
 
 
@@ -160,3 +161,9 @@ JWT_AUTH = {
     'JWT_EXPIRATION_DELTA': datetime.timedelta(days=1),
     'JWT_SECRET_KEY': config('SECRET_KEY')
 }
+
+cloudinary.config(
+    cloud_name=config('cloud_name'),
+    api_key=config('api_key', cast=int),
+    api_secret=config('api_secret')
+)
