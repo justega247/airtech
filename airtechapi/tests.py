@@ -1,9 +1,13 @@
 import json
+import os
 import datetime
+import cloudinary.uploader
 from django.urls import reverse
 from rest_framework.views import status
 from rest_framework.test import APITestCase, APIClient
 from django.contrib.auth import get_user_model
+from unittest.mock import Mock
+from tempfile import TemporaryFile
 from .models import Flight
 
 User = get_user_model()
@@ -68,13 +72,14 @@ class AuthUserAPITest(BaseViewTest):
         url = reverse(
             "auth-register"
         )
-        response = self.client.post(
-            url,
-            data=json.dumps({
+        data = {
                 "username": "",
                 "password": "",
                 "email": "mail.com"
-            }),
+            }
+        response = self.client.post(
+            url,
+            data=json.dumps(data),
             content_type="application/json"
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -430,3 +435,37 @@ class BookingTest(BaseViewTest):
             content_type="application/json"
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+class TestPassportUpload(BaseViewTest):
+    def test_passport_upload_success(self):
+        self.user_token(
+            data={
+                "username": "maddy",
+                "password": "thepassword"
+            })
+        cloudinary_mock_response = {
+            'public_id': 'public-id',
+            'secure_url': 'http://hello.com/here',
+        }
+        cloudinary.uploader.upload = Mock(
+            side_effect=lambda *args, **kwargs: cloudinary_mock_response)
+
+        url = reverse(
+            "passport-upload",
+        )
+
+        with TemporaryFile() as temp_image_obj:
+            for line in open(os.path.dirname(__file__) + '/passport.jpg', 'rb'):
+                temp_image_obj.write(line)
+
+            response = self.client.post(
+                url,
+                {'passport': temp_image_obj},
+                format="multipart",
+            )
+
+            response_data = response.data
+            assert response.status_code == 201
+            assert response_data['data']['id'] == 1
+            assert cloudinary.uploader.upload.called

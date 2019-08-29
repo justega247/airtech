@@ -67,3 +67,15 @@ class Booking(models.Model):
 
     class Meta:
         unique_together = ('flight', 'passenger')
+
+    def __str__(self):
+        return self.flight, self.passenger
+
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    passport_url = models.URLField()
+    cloudinary_public_id = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.user, self.passport_url
